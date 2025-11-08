@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ... (aapka purana tailwind code) */
+
+@media print {
+  /* Print karte waqt sab kuch hide kar do */
+  body * {
+    visibility: hidden;
+  }
+  
+  /* Sirf ticket aur uske andar ki cheezon ko visible karo */
+  #ticket-to-print, #ticket-to-print * {
+    visibility: visible;
+  }
+  
+  /* Ticket ko print page par sahi se position karo */
+  #ticket-to-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    border: none;
+    box-shadow: none;
+  }
+}
