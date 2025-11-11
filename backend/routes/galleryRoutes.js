@@ -1,18 +1,22 @@
 import express from 'express';
 const router = express.Router();
 import {
-  getAllGalleryImages,
-  addGalleryImage,
-  deleteGalleryImage,
+  createGalleryEvent,
+  getAllGalleryEvents,
+  getGalleryEventBySlug,
+  deleteGalleryEvent,
 } from '../controllers/galleryController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
-import { uploadSingleImage } from '../middleware/uploadMiddleware.js';
+import { uploadGalleryPortfolio } from '../middleware/uploadMiddleware.js'; // Naya uploader
 
 router.route('/')
-  .get(getAllGalleryImages)
-  .post(protect, admin, uploadSingleImage, addGalleryImage);
+  .get(getAllGalleryEvents)
+  .post(protect, admin, uploadGalleryPortfolio, createGalleryEvent);
   
+router.route('/:slug')
+  .get(getGalleryEventBySlug);
+
 router.route('/:id')
-  .delete(protect, admin, deleteGalleryImage);
+  .delete(protect, admin, deleteGalleryEvent);
 
 export default router;

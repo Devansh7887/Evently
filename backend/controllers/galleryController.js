@@ -1,45 +1,86 @@
 import asyncHandler from 'express-async-handler';
-import GalleryImage from '../models/GalleryImage.js';
+import GalleryEvent from '../models/GalleryEvent.js';
 import uploadToCloudinary from '../utils/cloudinaryUploader.js';
 
-// @desc    Get all gallery images
-// @route   GET /api/gallery
-// @access  Public
-const getAllGalleryImages = asyncHandler(async (req, res) => {
-  const images = await GalleryImage.find({}).sort({ eventDate: -1 });
-  res.json(images);
-});
-
-// @desc    Add a gallery image
+// @desc    Create new gallery event
 // @route   POST /api/gallery
 // @access  Admin
-const addGalleryImage = asyncHandler(async (req, res) => {
-  const { title, eventDate } = req.body;
-  if (!req.files || !req.files.image) {
-    res.status(400); throw new Error('No image file uploaded');
+const createGalleryEvent = asyncHandler(async (req, res) => {
+  const { title, description } = req.body;
+
+  if (!req.files || !req.files.thumbnailImage) {
+    res.status(400);
+    throw new Error('Thumbnail image is required');
   }
-  
-  const result = await uploadToCloudinary(req.files.image[0].buffer, 'gallery');
-  
-  const image = await GalleryImage.create({
+
+  let thumbnailImageUrl = '';
+  let galleryImages = [];
+
+  try {
+    // 1. Thumbnail Upload
+    const thumbResult = await uploadToCloudinary(req.files.thumbnailImage[0].buffer, 'gallery-thumbnails');
+    thumbnailImageUrl = thumbResult.secure_url;
+
+    // 2. Gallery Images Upload (Loop)
+    if (req.files && req.files.galleryImages) {
+      for (const file of req.files.galleryImages) {
+        const result = await uploadToCloudinary(file.buffer, 'gallery-main');
+        galleryImages.push({ imageUrl: result.secure_url });
+      }
+    }
+  } catch (error) {
+    console.error('Cloudinary upload error:', error);
+    res.status(500); throw new Error('Image upload failed');
+  }
+
+  // 3. Database mein save karein
+  const galleryEvent = await GalleryEvent.create({
     title,
-    eventDate,
-    imageUrl: result.secure_url,
+    description,
+    thumbnailImageUrl,
+    galleryImages,
   });
-  res.status(201).json(image);
+
+  res.status(201).json(galleryEvent);
 });
 
-// @desc    Delete a gallery image
+// @desc    Get all gallery events
+// @route   GET /api/gallery
+// @access  Public
+const getAllGalleryEvents = asyncHandler(async (req, res) => {
+  const events = await GalleryEvent.find({}).sort({ createdAt: -1 });
+  res.json(events);
+});
+
+// @desc    Get single gallery event by slug
+// @route   GET /api/gallery/:slug
+// @access  Public
+const getGalleryEventBySlug = asyncHandler(async (req, res) => {
+  const event = await GalleryEvent.findOne({ slug: req.params.slug });
+  if (event) {
+    res.json(event);
+  } else {
+    res.status(404); throw new Error('Gallery event not found');
+  }
+});
+
+// @desc    Delete a gallery event
 // @route   DELETE /api/gallery/:id
 // @access  Admin
-const deleteGalleryImage = asyncHandler(async (req, res) => {
-  const image = await GalleryImage.findById(req.params.id);
-  if (image) {
-    await image.deleteOne();
-    res.json({ message: 'Gallery image removed' });
+const deleteGalleryEvent = asyncHandler(async (req, res) => {
+  const event = await GalleryEvent.findById(req.params.id);
+  if (event) {
+    await event.deleteOne();
+    // TODO: Cloudinary se images delete karein
+    res.json({ message: 'Gallery event removed' });
   } else {
-    res.status(404); throw new Error('Image not found');
+    res.status(404); throw new Error('Gallery event not found');
   }
 });
 
-export { getAllGalleryImages, addGalleryImage, deleteGalleryImage };
+export {
+  createGalleryEvent,
+  getAllGalleryEvents,
+  getGalleryEventBySlug,
+  deleteGalleryEvent,
+};

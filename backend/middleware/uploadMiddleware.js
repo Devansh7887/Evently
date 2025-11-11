@@ -55,3 +55,8 @@ export const uploadSingleImage = imageUpload.fields([
 export const uploadResumeFile = fileUpload.fields([
   { name: 'resume', maxCount: 1 } // Hum file ko 'resume' naam ke field mein expect karenge
 ]);
+
+export const uploadGalleryPortfolio = imageUpload.fields([
+  { name: 'thumbnailImage', maxCount: 1 }, // 1 Thumbnail
+  { name: 'galleryImages', maxCount: 10 } // 10 Gallery Photos
+]);
