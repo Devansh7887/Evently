@@ -15,6 +15,7 @@ const createEvent = asyncHandler(async (req, res) => {
     time,
     seatingCapacity,
     price,
+    originalPrice,
     category,
   } = req.body;
 
@@ -56,6 +57,7 @@ const createEvent = asyncHandler(async (req, res) => {
     seatingCapacity,
     ticketsAvailable: seatingCapacity, // Initially, all tickets are available
     price,
+    originalPrice,
     category,
     bannerImageUrl: bannerImageUrl, // Naya field
     venueImageUrl: venueImageUrl,

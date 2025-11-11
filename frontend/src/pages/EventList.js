@@ -72,9 +72,23 @@ const EventCard = ({ event }) => {
           <p className="text-sm text-gray-500 mb-4">{event.category}</p>
 
           <div className="flex justify-between items-center">
-            <span className="text-lg font-bold text-green-600">
-              ₹{event.price}
-            </span>
+            <div>
+              {/* --- NAYA PRICE LOGIC --- */}
+              {event.originalPrice > event.price ? (
+                <>
+                  <span className="text-lg font-bold text-green-600">
+                    ₹{event.price}
+                  </span>
+                  <span className="text-sm text-gray-500 line-through ml-2">
+                    ₹{event.originalPrice}
+                  </span>
+                </>
+              ) : (
+                <span className="text-lg font-bold text-green-600">
+                  ₹{event.price}
+                </span>
+              )}
+            </div>
             <span
               className={`text-sm font-bold ${
                 isSoldOut ? "text-red-500" : "text-gray-700"

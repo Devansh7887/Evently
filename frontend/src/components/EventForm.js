@@ -10,6 +10,7 @@ export default function EventForm({ onEventCreated }) {
   const [time, setTime] = useState('');
   const [seatingCapacity, setSeatingCapacity] = useState(100);
   const [price, setPrice] = useState(50);
+  const [originalPrice, setOriginalPrice] = useState('');
   const [category, setCategory] = useState('General');
   const [bannerImage, setBannerImage] = useState(null);
   const [bannerPreview, setBannerPreview] = useState('');
@@ -61,6 +62,7 @@ export default function EventForm({ onEventCreated }) {
     formData.append('time', time);
     formData.append('seatingCapacity', Number(seatingCapacity));
     formData.append('price', Number(price));
+    formData.append('originalPrice', Number(originalPrice));
     formData.append('category', category);
 
     if (bannerImage) {
@@ -95,6 +97,7 @@ export default function EventForm({ onEventCreated }) {
       setTime('');
       setSeatingCapacity(100);
       setPrice(50);
+      setOriginalPrice('');
       setCategory('General');
       setBannerImage(null);
       setBannerPreview('');
@@ -213,6 +216,32 @@ export default function EventForm({ onEventCreated }) {
             />
           </div>
         </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Original Price (₹) (Optional)</label>
+            <input
+              type="number"
+              placeholder="e.g., 100 (if discounted)"
+              value={originalPrice}
+              onChange={(e) => setOriginalPrice(e.target.value)}
+              min="0"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Selling Price (₹)</label>
+            <input
+              type="number"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              min="0"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+              required
+            />
+          </div>
+        </div>
+
         {/* --- Image Inputs --- */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Banner Image Input */}
