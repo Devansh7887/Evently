@@ -2,7 +2,9 @@ import asyncHandler from 'express-async-handler';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import { nanoid } from 'nanoid';
-import BookingOrder from '../models/BookingOrder.js';
+// --- THIS IS THE FIX ---
+import BookingOrder from '../models/BookingOrder.js'; // <-- Importing the NEW model
+// --------------------
 import Event from '../models/Event.js';
 import generateQRCode from '../utils/generateQRCode.js';
 import sendEmail from '../utils/sendEmail.js';
@@ -16,34 +18,16 @@ const razorpay = new Razorpay({
 const createBookingOrder = asyncHandler(async (req, res) => {
   const { eventId, ticketCount, attendees } = req.body;
 
-  // Log incoming data to help debug client payloads
-  console.log('createBookingOrder payload:', JSON.stringify({ eventId, ticketCount, attendees }, null, 2));
-
-  // Normalize attendee objects so backend accepts either { name, email } or { attendeeName, attendeeEmail }
-  const normalizedAttendees = (attendees || []).map((a) => ({
-    attendeeName: a.attendeeName || a.name || '',
-    attendeeEmail: a.attendeeEmail || a.email || '',
-    attendeePhone: a.attendeePhone || a.phone || '',
-    attendeeDOB: a.attendeeDOB || a.dob || null,
-  }));
-
-  // Basic validation on normalized attendees
-  for (const [i, att] of normalizedAttendees.entries()) {
-    if (!att.attendeeName || !att.attendeeEmail) {
-      res.status(400);
-      throw new Error(`Invalid attendee at index ${i}: attendeeName and attendeeEmail are required.`);
-    }
-  }
-
   const event = await Event.findById(eventId);
   if (!event) { res.status(404); throw new Error('Event not found'); }
   if (event.ticketsAvailable < ticketCount) { res.status(400); throw new Error('Not enough tickets available'); }
 
   const totalAmountInPaise = (event.price * ticketCount) * 100;
 
+  // Using the new model: BookingOrder
   const pendingBooking = await BookingOrder.create({
     eventId,
-    tickets: normalizedAttendees,
+    tickets: attendees,
     ticketCount: Number(ticketCount),
     totalAmount: totalAmountInPaise / 100,
     paymentStatus: 'pending',
@@ -69,6 +53,7 @@ const createBookingOrder = asyncHandler(async (req, res) => {
 const verifyPayment = asyncHandler(async (req, res) => {
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature, booking_id } = req.body;
 
+  // Using the new model: BookingOrder
   const booking = await BookingOrder.findById(booking_id).populate('eventId', 'title date venue time');
   if (!booking || booking.paymentStatus === 'completed') {
     res.status(404); throw new Error('Booking not found or already processed');
@@ -91,7 +76,7 @@ const verifyPayment = asyncHandler(async (req, res) => {
   let emailBodyTickets = '';
 
   for (const attendee of booking.tickets) {
-    const ticketId = `EBY-${nanoid(8).toUpperCase()}`;
+    const ticketId = nanoid(10).toUpperCase();
     const qrCodeUrl = await generateQRCode(ticketId);
     generatedTickets.push({ ...attendee.toObject(), ticketId: ticketId, qrCodeUrl: qrCodeUrl });
 
@@ -117,6 +102,7 @@ const verifyPayment = asyncHandler(async (req, res) => {
 });
 
 const getTicketById = asyncHandler(async (req, res) => {
+  // Using the new model: BookingOrder
   const booking = await BookingOrder.findById(req.params.bookingId).populate('eventId', 'title date venue time');
   if (booking && booking.paymentStatus === 'completed') {
     res.json({ attendeeEmail: booking.tickets[0].attendeeEmail, tickets: booking.tickets, event: booking.eventId });
@@ -126,11 +112,13 @@ const getTicketById = asyncHandler(async (req, res) => {
 });
 
 const getUserBookings = asyncHandler(async (req, res) => {
+  // Using the new model: BookingOrder
   const bookings = await BookingOrder.find({}).populate('eventId', 'title date').sort({ createdAt: -1 });
   res.json(bookings);
 });
 
 const getEventBookings = asyncHandler(async (req, res) => {
+  // Using the new model: BookingOrder
   const bookings = await BookingOrder.find({ eventId: req.params.eventId }).sort({ createdAt: -1 });
   res.json(bookings);
 });

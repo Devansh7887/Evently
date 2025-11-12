@@ -27,7 +27,7 @@ const EventCard = ({ event }) => {
 
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
-      <Link to={`/event/${event._id}`} className="block relative">
+      <Link to={`/event/${event.slug}`} className="block relative">
         {/* Image Section */}
         <div className="h-48 bg-gray-200">
           {event.bannerImageUrl ? (

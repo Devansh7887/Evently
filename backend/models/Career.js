@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import slugify from 'slugify';
 
 const careerSchema = mongoose.Schema({
   jobTitle: { type: String, required: true },

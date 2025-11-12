@@ -29,6 +29,7 @@ import AdminManageTeam from './pages/admin/AdminManageTeam';
 import AdminManageGallery from './pages/admin/AdminManageGallery';
 import AdminManageCareers from './pages/admin/AdminManageCareers';
 import AdminViewBookings from './pages/admin/AdminViewBookings';
+import AdminBookingDetails from './pages/admin/AdminBookingDetails';
 import AdminViewApplications from './pages/admin/AdminViewApplications';
 
 function App() {
@@ -53,6 +54,7 @@ function App() {
           <Route path="gallery" element={<AdminManageGallery />} /> {/* /admin/gallery */}
           <Route path="careers" element={<AdminManageCareers />} /> {/* /admin/careers */}
           <Route path="bookings" element={<AdminViewBookings />} /> {/* /admin/bookings */}
+          <Route path="bookings/:slug" element={<AdminBookingDetails />} />
           <Route path="applications" element={<AdminViewApplications />} /> {/* /admin/applications */}
         </Route>
 

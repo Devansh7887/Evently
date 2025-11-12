@@ -9,7 +9,7 @@ const ticketSchema = new mongoose.Schema({
   qrCodeUrl: { type: String },
 });
 
-const bookingOrderSchema = new mongoose.Schema( // <-- NAAM BADLA
+const bookingOrderSchema = new mongoose.Schema(
   {
     eventId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -29,7 +29,7 @@ const bookingOrderSchema = new mongoose.Schema( // <-- NAAM BADLA
   { timestamps: true }
 );
 
-// Model ka naam 'Booking' se 'BookingOrder' karein
+// We're using a new name, so Mongoose won't use the cached old one
 const BookingOrder = mongoose.model('BookingOrder', bookingOrderSchema); 
 
-export default BookingOrder; // Naya model export karein
+export default BookingOrder;

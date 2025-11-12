@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-// Helper function to load Razorpay script
 function loadScript(src) {
   return new Promise((resolve) => {
     const script = document.createElement('script');
@@ -14,29 +13,21 @@ function loadScript(src) {
 }
 
 export default function BookingFormModal({ event, onClose }) {
-  // --- FIX 1: Ticket count ab string lega taaki empty ho sake ---
   const [ticketCount, setTicketCount] = useState('1'); 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const [attendees, setAttendees] = useState([{ name: '', email: '', phone: '', dob: '' }]);
 
-  // Yeh useEffect ab empty string ko bhi handle karega
   useEffect(() => {
     setAttendees(currentAttendees => {
-      const newCount = parseInt(ticketCount, 10); // String ko number mein badlo
-      
-      // Agar user ne box khali kar diya (NaN) ya 0 daal diya
+      const newCount = parseInt(ticketCount, 10);
       if (isNaN(newCount) || newCount < 1) {
-        return []; // Attendee forms ko khali kar do
+        return [];
       }
-      
       const currentCount = currentAttendees.length;
       if (newCount > currentCount) {
-        return [
-          ...currentAttendees,
-          ...Array(newCount - currentCount).fill({ name: '', email: '', phone: '', dob: '' })
-        ];
+        return [...currentAttendees, ...Array(newCount - currentCount).fill({ name: '', email: '', phone: '', dob: '' })];
       } else if (newCount < currentCount) {
         return currentAttendees.slice(0, newCount);
       }
@@ -48,7 +39,6 @@ export default function BookingFormModal({ event, onClose }) {
     setAttendees(current => current.map((attendee, i) => i === index ? { ...attendee, [field]: value } : attendee));
   };
 
-  // Payment function
   const handlePayment = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -61,18 +51,15 @@ export default function BookingFormModal({ event, onClose }) {
       return;
     }
 
-    // --- FIX 2: Naya Validation Logic ---
     for (let i = 0; i < attendees.length; i++) {
       const att = attendees[i];
       if (i === 0) {
-        // Ticket 1 (Main User) ke liye sab kuch compulsory hai
         if (!att.name || !att.email || !att.phone || !att.dob) {
           setError('Please fill all details for the Main Attendee (Ticket 1).');
           setLoading(false);
           return;
         }
       } else {
-        // Baaki tickets ke liye sirf Name aur Email
         if (!att.name || !att.email) {
           setError(`Please fill in the Name and Email for Ticket ${i + 1}.`);
           setLoading(false);
@@ -80,7 +67,6 @@ export default function BookingFormModal({ event, onClose }) {
         }
       }
     }
-    // --- END VALIDATION ---
 
     const res = await loadScript('https://checkout.razorpay.com/v1/checkout.js');
     if (!res) {
@@ -90,10 +76,20 @@ export default function BookingFormModal({ event, onClose }) {
     }
 
     try {
+      // --- YEH HAI ASLI FIX ---
+      // Frontend state ({ name, email }) ko Backend state ({ attendeeName, attendeeEmail }) mein badlein
+      const payloadAttendees = attendees.map(att => ({
+        attendeeName: att.name,
+        attendeeEmail: att.email,
+        attendeePhone: att.phone,
+        attendeeDOB: att.dob,
+      }));
+      // --- END FIX ---
+
       const { data } = await axios.post('/api/bookings/create-order', {
         eventId: event._id,
-        ticketCount: numTickets, // Sahi number bhejein
-        attendees: attendees, // Poora array (jismein optional fields null/empty honge)
+        ticketCount: numTickets,
+        attendees: payloadAttendees, // Naya, sahi data bhejein
       });
 
       const { order, booking_id } = data;
@@ -139,13 +135,11 @@ export default function BookingFormModal({ event, onClose }) {
         {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
 
         <form onSubmit={handlePayment} className="space-y-4">
-          {/* --- FIX 3: Ticket count input --- */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Number of Tickets</label>
             <input 
               type="number" 
               value={ticketCount} 
-              // Ab yeh 'e.target.value' (string) ko set karega, jisse empty "" allowed hai
               onChange={(e) => setTicketCount(e.target.value)} 
               min="1" 
               max={event.ticketsAvailable} 
@@ -156,7 +150,6 @@ export default function BookingFormModal({ event, onClose }) {
           
           <hr />
 
-          {/* --- Naya Dynamic Attendee Forms --- */}
           {attendees.map((attendee, index) => (
             <div key={index} className="p-4 border rounded-lg space-y-3">
               <h3 className="font-semibold text-lg">
@@ -164,19 +157,16 @@ export default function BookingFormModal({ event, onClose }) {
                 {index === 0 && <span className="text-sm text-blue-600"> (Main Attendee)</span>}
               </h3>
               
-              {/* --- Name (Hamesha required) --- */}
               <div>
                 <label className="block text-sm font-medium text-gray-700">Attendee Name <span className="text-red-500">*</span></label>
                 <input type="text" placeholder="Full Name" value={attendee.name} onChange={(e) => handleAttendeeChange(index, 'name', e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
               </div>
               
-              {/* --- Email (Hamesha required) --- */}
               <div>
                 <label className="block text-sm font-medium text-gray-700">Attendee Email <span className="text-red-500">*</span></label>
                 <input type="email" placeholder="Email for e-ticket" value={attendee.email} onChange={(e) => handleAttendeeChange(index, 'email', e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
               </div>
               
-              {/* --- Phone (Sirf Ticket 1 ke liye required) --- */}
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Phone 
@@ -185,7 +175,6 @@ export default function BookingFormModal({ event, onClose }) {
                 <input type="tel" value={attendee.phone} onChange={(e) => handleAttendeeChange(index, 'phone', e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required={index === 0} />
               </div>
               
-              {/* --- DOB (Sirf Ticket 1 ke liye required) --- */}
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Date of Birth 
@@ -199,7 +188,7 @@ export default function BookingFormModal({ event, onClose }) {
           <div className="pt-4">
             <button
               type="submit"
-              disabled={loading || attendees.length === 0} // Agar tickets 0 hain toh disable karein
+              disabled={loading || attendees.length === 0}
               className="w-full bg-green-500 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 hover:bg-green-600 hover:shadow-xl hover:-translate-y-1 disabled:bg-gray-400"
             >
               {loading ? 'Processing...' : `Pay Now (Total: ₹${event.price * (Number(ticketCount) || 0)})`}

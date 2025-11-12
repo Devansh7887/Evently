@@ -61,7 +61,6 @@ const createEvent = asyncHandler(async (req, res) => {
     category,
     bannerImageUrl: bannerImageUrl, // Naya field
     venueImageUrl: venueImageUrl,
-    createdBy: req.user._id,
   });
 
   const createdEvent = await event.save();
@@ -76,11 +75,12 @@ const getAllEvents = asyncHandler(async (req, res) => {
   res.json(events);
 });
 
-// @desc    Get single event by ID
-// @route   GET /api/events/:id
+// @desc    Get single event by SLUG
+// @route   GET /api/events/:slug
 // @access  Public
-const getEventById = asyncHandler(async (req, res) => {
-  const event = await Event.findById(req.params.id);
+const getEventBySlug = asyncHandler(async (req, res) => {
+  // FindById ki jagah findOne({ slug: ... }) istemaal karein
+  const event = await Event.findOne({ slug: req.params.slug });
 
   if (event) {
     res.json(event);
@@ -145,7 +145,7 @@ const deleteEvent = asyncHandler(async (req, res) => {
 export {
   createEvent,
   getAllEvents,
-  getEventById,
+  getEventBySlug,
   updateEvent,
   deleteEvent,
 };
