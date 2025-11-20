@@ -10,20 +10,27 @@ export default function EventBookingPage() {
   const [isModalOpen, setIsModalOpen] = useState(false); // <-- State for modal
   const { slug } = useParams();
 
+  const fetchEvent = async () => {
+    try {
+      setLoading(true);
+      const { data } = await axios.get(`/api/events/${slug}`);
+      setEvent(data);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching event:', error);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchEvent = async () => {
-      try {
-        setLoading(true);
-        const { data } = await axios.get(`/api/events/${slug}`);
-        setEvent(data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching event:', error);
-        setLoading(false);
-      }
-    };
     fetchEvent();
   }, [slug]);
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    // Refresh event data to get updated ticket count
+    fetchEvent();
+  };
 
   if (loading) return <Loader />;
   if (!event) {
@@ -160,7 +167,7 @@ export default function EventBookingPage() {
       {isModalOpen && (
         <BookingFormModal 
           event={event} 
-          onClose={() => setIsModalOpen(false)} 
+          onClose={handleCloseModal} 
         />
       )}
     </>

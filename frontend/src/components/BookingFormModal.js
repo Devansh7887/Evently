@@ -51,6 +51,13 @@ export default function BookingFormModal({ event, onClose }) {
       return;
     }
 
+    // Check if requested tickets are available
+    if (numTickets > event.ticketsAvailable) {
+      setError(`Sorry, only ${event.ticketsAvailable} tickets are available. Please reduce the number of tickets.`);
+      setLoading(false);
+      return;
+    }
+
     for (let i = 0; i < attendees.length; i++) {
       const att = attendees[i];
       if (i === 0) {
