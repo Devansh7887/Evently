@@ -3,6 +3,7 @@ const router = express.Router();
 import {
   getAllCareers,
   createCareer,
+  updateCareer,
   deleteCareer,
   applyForJob,
   getAllApplications,
@@ -14,13 +15,12 @@ router.route('/')
   .get(getAllCareers)
   .post(protect, admin, createCareer);
 
-router.route('/apply/:jobId').post(uploadResumeFile, applyForJob);
-  
-router.route('/:id')
-  .delete(protect, admin, deleteCareer);
-
 router.route('/applications').get(protect, admin, getAllApplications);
 
 router.route('/apply/:jobSlug').post(uploadResumeFile, applyForJob);
+  
+router.route('/:id')
+  .put(protect, admin, updateCareer)
+  .delete(protect, admin, deleteCareer);
 
 export default router;

@@ -40,6 +40,38 @@ const createTeamMember = asyncHandler(async (req, res) => {
   res.status(201).json(member);
 });
 
+// @desc    Update a team member
+// @route   PUT /api/team/:id
+// @access  Admin
+const updateTeamMember = asyncHandler(async (req, res) => {
+  const { name, role, bio, linkedinId } = req.body;
+  const member = await TeamMember.findById(req.params.id);
+
+  if (!member) {
+    res.status(404);
+    throw new Error('Team member not found');
+  }
+
+  member.name = name || member.name;
+  member.role = role || member.role;
+  member.bio = bio || member.bio;
+  member.linkedinId = linkedinId || member.linkedinId;
+
+  // Update image if new one is provided
+  if (req.files && req.files.image && req.files.image[0]) {
+    try {
+      const result = await uploadToCloudinary(req.files.image[0].buffer, 'team');
+      member.imageUrl = result.secure_url;
+    } catch (error) {
+      res.status(500);
+      throw new Error('Image upload failed');
+    }
+  }
+
+  const updatedMember = await member.save();
+  res.json(updatedMember);
+});
+
 // @desc    Delete a team member
 // @route   DELETE /api/team/:id
 // @access  Admin
@@ -55,4 +87,4 @@ const deleteTeamMember = asyncHandler(async (req, res) => {
   }
 });
 
-export { getAllTeamMembers, createTeamMember, deleteTeamMember };
+export { getAllTeamMembers, createTeamMember, updateTeamMember, deleteTeamMember };

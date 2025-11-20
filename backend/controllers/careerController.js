@@ -25,6 +25,27 @@ const createCareer = asyncHandler(async (req, res) => {
   res.status(201).json(career);
 });
 
+// @desc    Update a career
+// @route   PUT /api/careers/:id
+// @access  Admin
+const updateCareer = asyncHandler(async (req, res) => {
+  const { jobTitle, location, description, applyLink } = req.body;
+  const career = await Career.findById(req.params.id);
+
+  if (!career) {
+    res.status(404);
+    throw new Error('Career not found');
+  }
+
+  career.jobTitle = jobTitle || career.jobTitle;
+  career.location = location || career.location;
+  career.description = description || career.description;
+  career.applyLink = applyLink || career.applyLink;
+
+  const updatedCareer = await career.save();
+  res.json(updatedCareer);
+});
+
 // @desc    Delete a career
 // @route   DELETE /api/careers/:id
 // @access  Admin
@@ -83,4 +104,4 @@ const getAllApplications = asyncHandler(async (req, res) => {
   res.json(applications);
 });
 
-export { getAllCareers, createCareer, deleteCareer, applyForJob, getAllApplications };
+export { getAllCareers, createCareer, updateCareer, deleteCareer, applyForJob, getAllApplications };

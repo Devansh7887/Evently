@@ -64,6 +64,45 @@ const getGalleryEventBySlug = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Update a gallery event
+// @route   PUT /api/gallery/:id
+// @access  Admin
+const updateGalleryEvent = asyncHandler(async (req, res) => {
+  const { title, description } = req.body;
+  const event = await GalleryEvent.findById(req.params.id);
+
+  if (!event) {
+    res.status(404);
+    throw new Error('Gallery event not found');
+  }
+
+  event.title = title || event.title;
+  event.description = description || event.description;
+
+  try {
+    // Update thumbnail if provided
+    if (req.files && req.files.thumbnailImage && req.files.thumbnailImage[0]) {
+      const thumbResult = await uploadToCloudinary(req.files.thumbnailImage[0].buffer, 'gallery-thumbnails');
+      event.thumbnailImageUrl = thumbResult.secure_url;
+    }
+
+    // Add new gallery images if provided (append to existing)
+    if (req.files && req.files.galleryImages) {
+      for (const file of req.files.galleryImages) {
+        const result = await uploadToCloudinary(file.buffer, 'gallery-main');
+        event.galleryImages.push({ imageUrl: result.secure_url });
+      }
+    }
+  } catch (error) {
+    console.error('Cloudinary upload error:', error);
+    res.status(500);
+    throw new Error('Image upload failed');
+  }
+
+  const updatedEvent = await event.save();
+  res.json(updatedEvent);
+});
+
 // @desc    Delete a gallery event
 // @route   DELETE /api/gallery/:id
 // @access  Admin
@@ -82,5 +121,6 @@ export {
   createGalleryEvent,
   getAllGalleryEvents,
   getGalleryEventBySlug,
+  updateGalleryEvent,
   deleteGalleryEvent,
 };

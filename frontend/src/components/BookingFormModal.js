@@ -60,8 +60,8 @@ export default function BookingFormModal({ event, onClose }) {
           return;
         }
       } else {
-        if (!att.name || !att.email) {
-          setError(`Please fill in the Name and Email for Ticket ${i + 1}.`);
+        if (!att.name || !att.email || !att.phone) {
+          setError(`Please fill in the Name, Email, and Phone for Ticket ${i + 1}.`);
           setLoading(false);
           return;
         }
@@ -218,10 +218,10 @@ export default function BookingFormModal({ event, onClose }) {
                     />
                   </div>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                        Phone {index === 0 ? <span className="text-red-500">*</span> : <span className="text-gray-500">(Optional)</span>}
+                        Phone <span className="text-red-500">*</span>
                       </label>
                       <input 
                         type="tel" 
@@ -229,11 +229,9 @@ export default function BookingFormModal({ event, onClose }) {
                         value={attendee.phone} 
                         onChange={(e) => handleAttendeeChange(index, 'phone', e.target.value)} 
                         className="input-field text-sm sm:text-base"
-                        required={index === 0} 
+                        required 
                       />
-                    </div>
-                    
-                    <div>
+                    </div>                    <div>
                       <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                         Date of Birth {index === 0 ? <span className="text-red-500">*</span> : <span className="text-gray-500">(Optional)</span>}
                       </label>

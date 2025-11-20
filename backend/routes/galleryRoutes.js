@@ -4,6 +4,7 @@ import {
   createGalleryEvent,
   getAllGalleryEvents,
   getGalleryEventBySlug,
+  updateGalleryEvent,
   deleteGalleryEvent,
 } from '../controllers/galleryController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
@@ -17,6 +18,7 @@ router.route('/:slug')
   .get(getGalleryEventBySlug);
 
 router.route('/:id')
+  .put(protect, admin, uploadGalleryPortfolio, updateGalleryEvent)
   .delete(protect, admin, deleteGalleryEvent);
 
 export default router;

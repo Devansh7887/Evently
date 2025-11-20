@@ -103,28 +103,54 @@ const updateEvent = asyncHandler(async (req, res) => {
     seatingCapacity,
     ticketsAvailable,
     price,
+    originalPrice,
     category,
   } = req.body;
 
   const event = await Event.findById(req.params.id);
 
-  if (event) {
-    event.title = title || event.title;
-    event.description = description || event.description;
-    event.venue = venue || event.venue;
-    event.date = date || event.date;
-    event.time = time || event.time;
-    event.seatingCapacity = seatingCapacity || event.seatingCapacity;
-    event.ticketsAvailable = ticketsAvailable ?? event.ticketsAvailable; // Allow setting to 0
-    event.price = price || event.price;
-    event.category = category || event.category;
-
-    const updatedEvent = await event.save();
-    res.json(updatedEvent);
-  } else {
+  if (!event) {
     res.status(404);
     throw new Error('Event not found');
   }
+
+  event.title = title || event.title;
+  event.description = description || event.description;
+  event.venue = venue || event.venue;
+  event.date = date || event.date;
+  event.time = time || event.time;
+  event.seatingCapacity = seatingCapacity || event.seatingCapacity;
+  event.ticketsAvailable = ticketsAvailable ?? event.ticketsAvailable; // Allow setting to 0
+  event.price = price || event.price;
+  event.originalPrice = originalPrice || event.originalPrice;
+  event.category = category || event.category;
+
+  try {
+    // Update banner image if provided
+    if (req.files && req.files.bannerImage && req.files.bannerImage[0]) {
+      const bannerResult = await uploadToCloudinary(
+        req.files.bannerImage[0].buffer,
+        'events'
+      );
+      event.bannerImageUrl = bannerResult.secure_url;
+    }
+
+    // Update venue image if provided
+    if (req.files && req.files.venueImage && req.files.venueImage[0]) {
+      const venueResult = await uploadToCloudinary(
+        req.files.venueImage[0].buffer,
+        'events'
+      );
+      event.venueImageUrl = venueResult.secure_url;
+    }
+  } catch (error) {
+    console.error('Cloudinary upload error:', error);
+    res.status(500);
+    throw new Error('Image upload failed');
+  }
+
+  const updatedEvent = await event.save();
+  res.json(updatedEvent);
 });
 
 // @desc    Delete an event

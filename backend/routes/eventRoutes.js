@@ -20,7 +20,7 @@ router.route('/:slug').get(getEventBySlug);
 // '/:id' (UPDATE and DELETE by ID)
 router
   .route('/:id')
-  .put(protect, admin, updateEvent)
+  .put(protect, admin, uploadEventImages, updateEvent)
   .delete(protect, admin, deleteEvent);
 
 export default router;
